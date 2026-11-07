@@ -7,6 +7,7 @@ export default {
         sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
       },
       colors: {
+        night: { 900: '#050407', 800: '#0B0910', 700: '#121019', 600: '#1A1724' },
         primary: {
           50: '#F7F1FA',
           100: '#F1E7F8',
@@ -87,6 +88,14 @@ export default {
           '20%': { opacity: '0.9' },
           '100%': { transform: 'translateY(-160px) scale(1.1)', opacity: '0' },
         },
+        'marquee-left': {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(-50%)' },
+        },
+        'marquee-right': {
+          from: { transform: 'translateX(-50%)' },
+          to: { transform: 'translateX(0)' },
+        },
         'pop-in': {
           '0%': { transform: 'scale(0.9) translateY(8px)', opacity: '0' },
           '100%': { transform: 'scale(1) translateY(0)', opacity: '1' },
@@ -96,6 +105,8 @@ export default {
         float: 'float 6s ease-in-out infinite',
         'float-slow': 'float-slow 8s ease-in-out infinite',
         'rise-heart': 'rise-heart 5s ease-in infinite',
+        'marquee-left': 'marquee-left 75s linear infinite',
+        'marquee-right': 'marquee-right 90s linear infinite',
         'pop-in': 'pop-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both',
       },
     },

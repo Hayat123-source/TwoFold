@@ -2,10 +2,9 @@ import { Facebook, Instagram, Youtube } from 'lucide-react';
 import Logo from '@/components/ui/Logo';
 
 const EXPLORE_LINKS = [
-  { label: 'About Us', href: '#home' },
-  { label: 'How It Works', href: '#how-it-works' },
-  { label: 'Safety', href: '#safety' },
-  { label: 'Contact', href: '#faq' },
+  { label: 'Home', href: '#home' },
+  { label: 'The 1,000', href: '#spots' },
+  { label: 'Join', href: '#join' },
 ];
 
 const LEGAL_LINKS = ['Privacy Policy', 'Terms and Conditions', 'Community Guidelines'];
@@ -18,7 +17,7 @@ const SOCIAL_LINKS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-primary-900 text-primary-100">
+    <footer className="border-t border-white/10 bg-night-900 text-primary-100">
       <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 md:grid-cols-2 lg:grid-cols-12 lg:gap-10">
         <div className="lg:col-span-4">
           <Logo tone="light" />

@@ -15,13 +15,13 @@ type SubmitStatus = 'idle' | 'submitting' | 'success';
 const UNIQUE_VIOLATION = '23505';
 
 const INPUT_CLASS =
-  'w-full rounded-2xl border bg-white px-4 py-3.5 text-base text-ink-900 placeholder:text-ink-400 transition duration-300 focus:outline-none focus:ring-4';
+  'w-full rounded-2xl border bg-night-700 px-4 py-3.5 text-base text-white placeholder:text-ink-500 [color-scheme:dark] transition duration-300 focus:outline-none focus:ring-4';
 
 function inputClass(hasError: boolean) {
   return `${INPUT_CLASS} ${
     hasError
-      ? 'border-error-500 focus:border-error-500 focus:ring-error-500/15'
-      : 'border-ink-200 hover:border-primary-300 focus:border-accent-500 focus:ring-accent-500/15'
+      ? 'border-error-500 focus:border-error-500 focus:ring-error-500/20'
+      : 'border-white/10 hover:border-white/25 focus:border-accent-500 focus:ring-accent-500/20'
   }`;
 }
 
@@ -44,12 +44,12 @@ interface FieldProps {
 function Field({ id, label, error, children, className = '' }: FieldProps) {
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-2 block text-sm font-bold text-ink-800">
+      <label htmlFor={id} className="mb-2 block text-sm font-bold text-ink-200">
         {label}
       </label>
       {children}
       {error && (
-        <p id={`${id}-error`} role="alert" className="mt-2 text-sm font-semibold text-error-700">
+        <p id={`${id}-error`} role="alert" className="mt-2 text-sm font-semibold text-accent-300">
           {error}
         </p>
       )}
@@ -57,7 +57,11 @@ function Field({ id, label, error, children, className = '' }: FieldProps) {
   );
 }
 
-export default function SignupForm() {
+interface SignupFormProps {
+  onJoined?: () => void;
+}
+
+export default function SignupForm({ onJoined }: SignupFormProps) {
   const [values, setValues] = useState<SignupValues>(EMPTY_SIGNUP);
   const [errors, setErrors] = useState<SignupErrors>({});
   const [status, setStatus] = useState<SubmitStatus>('idle');
@@ -86,6 +90,7 @@ export default function SignupForm() {
     setStatus('submitting');
     const { error } = await supabase.from('early_access_signups').insert({
       first_name: values.firstName.trim(),
+      gender: values.gender,
       email: values.email.trim().toLowerCase(),
       phone: values.phone.trim(),
       date_of_birth: values.dateOfBirth,
@@ -95,36 +100,32 @@ export default function SignupForm() {
 
     if (error) {
       setStatus('idle');
-      setServerError(
-        error.code === UNIQUE_VIOLATION
-          ? 'This email address is already on the waitlist. We have you covered.'
-          : 'We could not save your details just now. Please check your connection and try again.',
-      );
+      if (error.code === UNIQUE_VIOLATION) {
+        setServerError('This email address is already on the list. You are covered.');
+      } else if (error.message?.includes('GENDER_FULL')) {
+        setServerError('Sorry, all spots on your side are taken.');
+      } else {
+        setServerError('We could not save your details just now. Please check your connection and try again.');
+      }
       return;
     }
 
     setSubmittedName(values.firstName.trim());
     setValues(EMPTY_SIGNUP);
     setStatus('success');
+    onJoined?.();
   };
 
   if (status === 'success') {
     return (
       <div className="animate-pop-in py-6 text-center" role="status">
-        <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-success-50 text-success-700">
+        <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-accent-500/15 text-accent-400">
           <CheckCircle2 className="h-10 w-10" strokeWidth={2.2} />
         </span>
-        <h3 className="mt-6 text-3xl font-extrabold text-primary-700">You are on the list, {submittedName}!</h3>
-        <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-600">
-          Thanks for taking the first step. TWO FOLD is preparing for launch, and your early-access details are
-          saved. Matching and messaging will only open once the platform is fully operational.
+        <h3 className="mt-6 text-3xl font-extrabold text-white">You are on the list, {submittedName}!</h3>
+        <p className="mx-auto mt-4 max-w-md text-base leading-relaxed text-ink-300">
+          Your spot is saved. We will contact you on your email and phone before TWO FOLD opens.
         </p>
-        <p className="mx-auto mt-4 max-w-md text-sm font-medium text-ink-500">
-          Joining the waitlist does not guarantee a match or immediate access to the platform.
-        </p>
-        <Button variant="secondary" className="mt-8" onClick={() => setStatus('idle')}>
-          Add another sign up
-        </Button>
       </div>
     );
   }
@@ -162,6 +163,41 @@ export default function SignupForm() {
           className={inputClass(Boolean(errors.city))}
         />
       </Field>
+
+      <div className="sm:col-span-2">
+        <p className="mb-2 block text-sm font-bold text-ink-200">I am a</p>
+        <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="I am a">
+          {([
+            { value: 'male', label: 'Man' },
+            { value: 'female', label: 'Woman' },
+          ] as const).map((option) => {
+            const selected = values.gender === option.value;
+            return (
+              <button
+                key={option.value}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                onClick={() => updateField('gender', option.value)}
+                className={`rounded-2xl border px-4 py-3.5 text-base font-extrabold transition duration-300 focus:outline-none focus-visible:ring-4 focus-visible:ring-accent-500/30 ${
+                  selected
+                    ? 'border-accent-500 bg-accent-500/15 text-white'
+                    : errors.gender
+                      ? 'border-error-500 bg-night-700 text-ink-300'
+                      : 'border-white/10 bg-night-700 text-ink-300 hover:border-white/25'
+                }`}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+        {errors.gender && (
+          <p role="alert" className="mt-2 text-sm font-semibold text-accent-300">
+            {errors.gender}
+          </p>
+        )}
+      </div>
 
       <Field id="email" label="Email address" error={errors.email} className="sm:col-span-2">
         <input
@@ -214,7 +250,7 @@ export default function SignupForm() {
         <label
           htmlFor="ageConfirmed"
           className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-4 transition duration-300 ${
-            errors.ageConfirmed ? 'border-error-500 bg-error-50' : 'border-primary-100 bg-secondary-100/60 hover:border-primary-300'
+            errors.ageConfirmed ? 'border-error-500 bg-error-500/10' : 'border-white/10 bg-night-700 hover:border-white/25'
           }`}
         >
           <input
@@ -227,19 +263,19 @@ export default function SignupForm() {
             aria-describedby={errors.ageConfirmed ? 'ageConfirmed-error' : undefined}
             className="mt-0.5 h-5 w-5 shrink-0 cursor-pointer accent-accent-600"
           />
-          <span className="text-sm font-semibold leading-relaxed text-ink-800">
+          <span className="text-sm font-semibold leading-relaxed text-ink-200">
             I confirm that I am 18 years or older.
           </span>
         </label>
         {errors.ageConfirmed && (
-          <p id="ageConfirmed-error" role="alert" className="mt-2 text-sm font-semibold text-error-700">
+          <p id="ageConfirmed-error" role="alert" className="mt-2 text-sm font-semibold text-accent-300">
             {errors.ageConfirmed}
           </p>
         )}
       </div>
 
       {serverError && (
-        <div role="alert" className="sm:col-span-2 rounded-2xl border border-error-100 bg-error-50 px-4 py-3 text-sm font-semibold text-error-700">
+        <div role="alert" className="sm:col-span-2 rounded-2xl border border-error-500/40 bg-error-500/10 px-4 py-3 text-sm font-semibold text-accent-200">
           {serverError}
         </div>
       )}
@@ -252,12 +288,11 @@ export default function SignupForm() {
               Saving your spot
             </>
           ) : (
-            'Join the waitlist'
+            'Claim your spot'
           )}
         </Button>
-        <p className="mt-4 text-xs leading-relaxed text-ink-500">
-          We only collect what we need for early access. Joining the waitlist does not guarantee a match or
-          immediate access to the platform.
+        <p className="mt-4 text-xs leading-relaxed text-ink-400">
+          We only collect what we need. Your details are never shown to other visitors.
         </p>
       </div>
     </form>

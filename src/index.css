@@ -19,3 +19,13 @@
     scroll-behavior: auto !important;
   }
 }
+
+@layer base {
+  body {
+    background-color: #050407;
+  }
+  ::selection {
+    background: #e63959;
+    color: #fff;
+  }
+}

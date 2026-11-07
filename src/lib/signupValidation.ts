@@ -1,5 +1,8 @@
+export type Gender = 'male' | 'female';
+
 export interface SignupValues {
   firstName: string;
+  gender: Gender | '';
   email: string;
   phone: string;
   dateOfBirth: string;
@@ -11,6 +14,7 @@ export type SignupErrors = Partial<Record<keyof SignupValues, string>>;
 
 export const EMPTY_SIGNUP: SignupValues = {
   firstName: '',
+  gender: '',
   email: '',
   phone: '',
   dateOfBirth: '',
@@ -37,6 +41,8 @@ export function validateSignup(values: SignupValues, today: Date = new Date()): 
   const firstName = values.firstName.trim();
   if (!firstName) errors.firstName = 'Please enter your first name.';
   else if (firstName.length > 60) errors.firstName = 'Please keep your first name under 60 characters.';
+
+  if (!values.gender) errors.gender = 'Please choose one.';
 
   const email = values.email.trim();
   if (!email) errors.email = 'Please enter your email address.';
